@@ -3,106 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日金句抽卡機</title>
+    <title>專屬金句抽卡機</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Varela+Round&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+
     <style>
-        /* 基礎設定 */
         body, html {
             height: 100%;
             margin: 0;
-            font-family: "Microsoft JhengHei", sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            /* 預設背景，之後會被隨機圖庫取代 */
-            background: #2c3e50;
+            background: #1a1a2e;
             background-size: cover;
             background-position: center;
             transition: background-image 1s ease-in-out;
+            /* 預設字體：優先使用圓體，若無則使用微軟正黑體 */
+            font-family: 'Varela Round', 'Microsoft JhengHei', sans-serif; 
         }
 
-        /* 玻璃質感卡片 */
         .card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 40px;
-            width: 80%;
-            max-width: 500px;
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 50px 40px;
+            width: 85%;
+            max-width: 600px;
             text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            color: white;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            color: #f1f1f1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: 0.5s;
         }
 
         .quote-text {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             line-height: 1.6;
-            margin-bottom: 20px;
-            font-weight: 500;
-            text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+            min-height: 80px;
+            /* 確保換字體時有平滑過渡 */
+            transition: font-family 0.5s ease; 
         }
 
         .quote-source {
             font-size: 1.1rem;
-            opacity: 0.9;
+            opacity: 0.8;
             font-style: italic;
+            letter-spacing: 1px;
+            font-family: 'Microsoft JhengHei', sans-serif; /* 出處固定用微軟正黑體，確保清晰 */
         }
 
         button {
-            margin-top: 30px;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 50px;
-            background: white;
-            color: #333;
+            margin-top: 40px;
+            padding: 12px 35px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 30px;
+            background: rgba(255,255,255,0.1);
+            color: white;
             font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s;
-            font-weight: bold;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            font-family: 'Microsoft JhengHei', sans-serif;
         }
 
         button:hover {
-            transform: scale(1.05);
-            background: #eee;
+            background: rgba(255,255,255,0.9);
+            color: #1a1a2e;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            opacity: 0.4;
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div id="quote-display" class="quote-text">點擊下方按鈕，抽一句金句</div>
+        <div id="quote-display" class="quote-text">宇宙正在為您挑選句子...</div>
         <div id="source-display" class="quote-source"></div>
-        <button onclick="drawQuote()">隨機抽一張卡</button>
+        <button onclick="drawCard()">🎲 隨機抽一張卡</button>
     </div>
 
     <script>
-        // 這就是你的金句資料庫，你可以隨時在這裡增加！
-        const quotes = [
-            { text: "重要的東西，用眼睛是看不見的。", source: "《小王子》安東尼·聖修伯里" },
-            { text: "所謂的自由，就是被別人討厭。", source: "《被討厭的勇氣》岸見一郎" },
-            { text: "生命中所有燦爛終將用寂寞償還。", source: "《百年孤寂》馬奎斯" },
-            { text: "我們之所以存在，並非為了活在過去，而是為了讓過去活在我們之中。", source: "《卡拉馬助夫兄弟們》杜斯妥也夫斯基" },
-            { text: "世界上只有一種英雄主義，就是在認清生活真相之後，依然熱愛生活。", source: "羅曼·羅蘭" }
+        const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
+
+        // 兩種穩定的字體輪替
+        const fonts = [
+            "'Varela Round', 'Microsoft JhengHei', sans-serif", // 偏圓體風格
+            "'Noto Sans TC', 'Microsoft JhengHei', sans-serif"  // 現代黑體風格
         ];
 
-        function drawQuote() {
-            // 隨機選一句話
-            const randomIndex = Math.floor(Math.random() * quotes.length);
-            const quote = quotes[randomIndex];
+        const localQuotes = [
+            // --- 韓國戲劇 ---
+            { text: "我是一隻混入白鯨群裡的獨角鯨。雖然大家都不一樣，但我還是很喜歡這片海洋。", source: "《非常律師禹英禑》" },
+            { text: "我們生在這個大地上，不是為了受苦受難，而是為了幸福快樂。", source: "《我們的藍調時光》" },
+            { text: "眼睛看不到，不代表不存在。只要你記得，就永遠不會消失。", source: "《Move to Heaven：我是遺物整理師》" },
+            { text: "有個人了解我，而我好像也能懂她。她懂我，讓我悲傷。", source: "《我的大叔》" },
+            { text: "有些仇恨就像思念，怎麼也無法停止。", source: "《黑暗榮耀》" },
+            { text: "有時候，不幸的事情也會發生在善良的人身上。", source: "《機智醫生生活》" },
+            { text: "我們都是在邊緣行走的人。", source: "《精神病房也會迎來清晨》" },
+            { text: "不要為了過去的事情，浪費新的眼淚。", source: "《與神同行》" },
+            { text: "這世界雖然很殘酷，但還是有值得活下去的價值。", source: "《未生》" },
+            
+            // --- 台灣戲劇 ---
+            { text: "到底什麼是好人，什麼是壞人，有標準答案嗎？", source: "《我們與惡的距離》" },
+            { text: "希望就在雲後面。", source: "《我們與惡的距離》" },
+            { text: "在司法裡，最珍貴的就是真相；而真相，往往在最卑微的地方。", source: "《八尺門的辯護人》" },
+            { text: "這輩子其實很長，長到你可以跌倒再站起來，做夢又醒過來。", source: "《俗女養成記》" },
+            { text: "這些很小很小的事情，都跟台灣的未來一樣重要。", source: "《人選之人—造浪者》" },
+            { text: "在死亡面前，我們每個人都是平等的。", source: "《火神的眼淚》" },
+            { text: "尊嚴是讓那些有在領固定薪水的人說的啦。", source: "《做工的人》" },
+            { text: "家，不是一個地方，而是與你在一起的人。", source: "《海岸村恰恰恰》" }, // 註：這部是韓劇，但呼應家的概念
+            { text: "人之所以有兩隻手臂，是為了擁抱自己愛的人。", source: "《一把青》" },
+            
+            // --- 經典電影 ---
+            { text: "人生就像一盒巧克力，你永遠不知道會吃到什麼口味。", source: "《阿甘正傳》" },
+            { text: "假如再也碰不到你，祝你早、午、晚都安。", source: "《楚門的世界》" },
+            { text: "愛是我們唯一能感知，超越時空次元的東西。", source: "《星際效應》" },
+            { text: "恐懼讓你淪為囚犯，希望讓你重獲自由。", source: "《刺激1995》" },
+            { text: "電影發明以後，人類的生命比起以前延長了至少三倍。", source: "《一一》" },
+            { text: "說好的是一輩子，差一年、一個月、一天、一個時辰，都不算一輩子。", source: "《霸王別姬》" },
+            { text: "雖然現在是太空時代，人類早就可以坐太空船去月球，但永遠無法探索別人內心的宇宙。", source: "《大佛普拉斯》" },
+            { text: "你不能因為害怕受傷，就拒絕所有的愛。", source: "《心靈捕手》" },
+            { text: "一顆微小的意念種子，就能改變你的世界。", source: "《全面啟動》" },
+            { text: "我們一路奮戰，不是為了改變世界，而是為了不讓世界改變我們。", source: "《熔爐》" },
+            { text: "決定我們成為什麼樣的人，不是我們的能力，而是我們的選擇。", source: "《哈利波特：消失的密室》" },
+            
+            // --- 西方幽默與生活喜劇 ---
+            { text: "我不擅長給建議。你需要來點諷刺的評論嗎？", source: "《六人行》(Friends)" },
+            { text: "我不是那種普通的媽媽，我是那種很酷的媽媽。", source: "《辣妹過招》(Mean Girls)" },
+            { text: "一切都會變好的。(Everything is fine.)", source: "《良善之地》(The Good Place)" },
+            { text: "生活就像一場馬拉松，唯一不同的是，這場馬拉松沒有終點，而且大家都在尖叫。", source: "《摩登家庭》(Modern Family)" },
+            { text: "我只是肯尼，在其他地方我可是滿分。(I’m just Ken. Anywhere else I’d be a ten.)", source: "《芭比》(Barbie)" },
+            { text: "只要持續游泳就好。(Just keep swimming.)", source: "《海底總動員》(Finding Nemo)" },
+            { text: "逗你玩呢！(Bazinga!)", source: "《生活大爆炸》(The Big Bang Theory)" },
+            
+            // --- 哲思與深度電影 ---
+            { text: "及時行樂，孩子們。讓你的生命變得不同凡響。", source: "《死亡詩社》(Dead Poets Society)" },
+            { text: "記憶是一件奇妙的事，它的運作方式跟我想像的完全不同。", source: "《異星入境》(Arrival)" },
+            { text: "你擁有的東西，最後會佔有你。(The things you own end up owning you.)", source: "《鬥陣俱樂部》(Fight Club)" },
+            { text: "所有這些時刻都將消失在時光中，一如淚水消失在雨中。", source: "《銀翼殺手》(Blade Runner)" },
+            { text: "你可以把一個人從記憶中抹去，但要將他從心底剔除，又是另一回事了。", source: "《王牌冤家》(Eternal Sunshine of the Spotless Mind)" },
+            { text: "真相是美麗又可怕的事物，因此必須極度謹慎地對待。", source: "《哈利波特：神秘的魔法石》" },
+            { text: "個人是聰明的，但群眾卻是盲目、恐慌且危險的動物。", source: "《MIB星際戰警》(Men in Black)" },
+            { text: "在這個瘋狂世界存活的唯一方法，就是擁抱瘋狂。", source: "《小丑》(Joker)" },
+            { text: "沒有平庸的時刻。(There are no ordinary moments.)", source: "《深夜加油站遇見蘇格拉底》" },
+            { text: "語言是衝突中被拔出的第一件武器。", source: "《異星入境》(Arrival)" },
 
-            // 更新文字
-            document.getElementById('quote-display').innerText = `「${quote.text}」`;
-            document.getElementById('source-display').innerText = `—— ${quote.source}`;
+            // --- 經典西方影視 ---
+            { text: "凡人皆有一死。(Valar Morghulis.)", source: "《權力遊戲》(Game of Thrones)" },
+            { text: "我只是一個女孩，站在一個男孩面前，請求他愛她。", source: "《新娘百分百》(Notting Hill)" },
+            { text: "畢竟，明天又是新的一天。(After all, tomorrow is another day.)", source: "《亂世佳人》(Gone with the Wind)" },
+            { text: "偉大的人並非生而偉大，而是變得偉大。", source: "《教父》(The Godfather)" },
+            { text: "何必如此嚴肅？(Why so serious?)", source: "《黑暗騎士》(The Dark Knight)" },
+            { text: "悲傷只是無處可去的愛。(Grief is just love with nowhere to go.)", source: "《汪達幻視》(WandaVision)" },
+            { text: "無論明天發生什麼，我們至少擁有今天。", source: "《真愛挑日子》(One Day)" },
+            { text: "永遠不要讓別人告訴你，你做不到某件事。", source: "《當幸福來敲門》(The Pursuit of Happyness)" },
+            { text: "愛是我們唯一能感知，超越時空次元的東西。", source: "《星際效應》(Interstellar)" },
+            
+            // --- 經典文學與現代書籍 ---
+            { text: "滿地都是六便士，他卻抬頭看見了月亮。", source: "威廉·毛姆《月亮與六便士》" },
+            { text: "我們終其一生，就是要擺脫他人的期待，找到真正的自己。", source: "伍綺詩《無聲告白》" },
+            { text: "每逢你想要批評任何人的時候，你就記住，這個世界上所有的人，並不是個個都有過你擁有的那些優越條件。", source: "費茲傑羅《大亨小傳》" },
+            { text: "我們都在陰溝裡，但仍有人仰望星空。", source: "奧斯卡·王爾德《溫夫人的扇子》" },
+            { text: "不管我們面對什麼樣的處境，都有選擇自己態度的自由。", source: "維克多·弗蘭克爾《活出意義來》" },
+            { text: "你沒有如期歸來，而這正是離別的意義。", source: "北島《白日夢》" },
+            { text: "一個人知道自己為什麼而活，就可以忍受任何一種生活。", source: "尼采" },
+            { text: "這個世界的問題在於，聰明人總是充滿疑慮，而傻子卻堅信不疑。", source: "伯特蘭·羅素" },
+            { text: "不要溫和地走進那個良夜，怒斥、怒斥光明的消逝。", source: "狄蘭·湯瑪斯 (Dylan Thomas)" },
+            { text: "真正的平靜，不是避開車馬喧囂，而是在心中修籬種菊。", source: "林清玄" },
+            { text: "勇氣不是不恐懼，而是知道有比恐懼更重要的事情。", source: "薇若妮卡·羅斯《分歧者》" },
 
-            // 每次抽卡同時換一個隨機背景 (使用 Unsplash API)
-            const randomId = Math.floor(Math.random() * 1000);
-            document.body.style.backgroundImage = `url('https://picsum.photos/1920/1080?random=${randomId}')`;
+           // --- 現代名人與思想家 ---
+            { text: "人們會忘記你說過的話，忘記你做過的事，但他們永遠不會忘記你帶給他們的感受。", source: "瑪雅·安吉盧 (Maya Angelou)" },
+            { text: "求知若飢，虛心若愚。 (Stay hungry, stay foolish.)", source: "史蒂夫·賈伯斯 (Steve Jobs)" },
+            { text: "如果你不喜歡某件事，就改變它；如果你無法改變它，就改變你的態度。", source: "瑪雅·安吉盧 (Maya Angelou)" },
+            { text: "我寧願因為做自己而被討厭，也不要因為偽裝而被喜歡。", source: "柯特·柯本 (Kurt Cobain)" },
+            { text: "做你自己，因為別人已經有人做了。 (Be yourself; everyone else is already taken.)", source: "奧斯卡·王爾德 (Oscar Wilde)" },
+            { text: "我們不需要魔法來改變世界，我們體內已經擁有了所需的所有力量。", source: "J.K. 羅琳 (J.K. Rowling)" },
+            { text: "善良是一種選擇，而聰明是一種天賦。", source: "傑夫·貝佐斯 (Jeff Bezos)" },
+            { text: "不管你多麼平凡，都要記住，你的聲音很有力量。", source: "泰勒絲 (Taylor Swift)" },
+            { text: "真正的領導力不是關於權力，而是關於賦權。", source: "比爾·蓋茲 (Bill Gates)" },
+            { text: "有些人的存在，本身就是一種安慰與希望。", source: "金南俊 (RM)" },
+            { text: "當我們不再害怕失敗時，我們就擁有了無限可能。", source: "莎拉·布雷克里 (Sara Blakely)" },
+            { text: "生命中最難的階段不是沒有人懂你，而是你不懂你自己。", source: " " },
+            { text: "這世界最令人敬畏的，不是力量，而是溫柔。", source: " " },
+            { text: "你不必為自己的真實感到抱歉。", source: "現代名人語錄" },
+            { text: "失敗不過是我們重新開始的機會，而這一次我們會更聰明。", source: "亨利·福特 (Henry Ford)" },
+            { text: "一切都會變好的，如果現在還不夠好，那說明還沒到最後。", source: "約翰·藍儂 (John Lennon)" },
+
+           // --- 經典動畫與動漫 ---
+            { text: "有些事情是不會忘記的，只是一時想不起來而已。", source: "《神隱少女》" },
+            { text: "心，可是很重的。", source: "《霍爾的移動城堡》" },
+            { text: "死亡不是生命的終點，遺忘才是。", source: "《可可夜總會》(Coco)" },
+            { text: "夢想不會逃跑，會逃跑的永遠都是自己。", source: "《蠟筆小新》野原廣志" },
+            { text: "只要活著，一定會有好事發生的。", source: "《櫻桃小丸子》" },
+            { text: "如果是去見你，我一定是用跑的。", source: "《崖上的波妞》" },
+            { text: "人類的讚歌就是勇氣的讚歌！", source: "《JoJo的奇妙冒險》" },
+            { text: "眼淚這東西啊，是流出來就能把辛酸和悲傷都沖走的好東西。", source: "《銀魂》" },
+            { text: "你可是努力過了喔。這是我確實知道的事。", source: "《葬送的芙莉蓮》" },
+            { text: "不管前方的路有多苦，只要走的方向正確，不管多麼崎嶇不平，都比站在原地更接近幸福。", source: "《神隱少女》" },
+            { text: "總有一天，時間會將我們分開吧。即使如此，直到那個時候到來為止，我們都要一直在一起。", source: "《螢火之森》" },
+            { text: "去經歷，去後悔，保持熱愛，奔赴山海。", source: "《大魚海棠》" },
+            { text: "重要的不是你從哪裡來，而是你選擇成為什麼樣的人。", source: "《功夫熊貓》(Kung Fu Panda)" },
+            { text: "哭泣並不能解決問題，但有時候，哭出來會好受一點。", source: "《大英雄天團》(Big Hero 6)" },
+            { text: "我從來不回頭看，親愛的。那會分散我對現在的注意力。", source: "《超人特攻隊》(The Incredibles) 衣夫人" },
+
+            // --- 亞洲地區/中文語系名人與作家 ---
+            { text: "人生不能像做菜，把所有的料都準備好了才下鍋。", source: "李安" },
+            { text: "一個人至少擁有一個夢想，有一個理由去堅強。心若沒有棲息的地方，到哪裡都是在流浪。", source: "三毛" },
+            { text: "因為懂得，所以慈悲。", source: "張愛玲" },
+            { text: "溫柔地推翻這個世界。", source: "吳青峰" },
+            { text: "15歲覺得游泳難，放棄游泳，到18歲遇到一個你喜歡的人約你去游泳，你只好說「我不會耶」。", source: "蔡康永" },
+            { text: "他強由他強，清風拂山岡；他橫由他橫，明月照大江。", source: "金庸《倚天屠龍記》" },
+            { text: "其實地上本沒有路，走的人多了，也便成了路。", source: "魯迅" },
+            { text: "青春是挽不回的水，轉眼消失在指尖。", source: "五月天阿信" },
+            { text: "這個時代不會阻止你自己閃耀，但你也覆蓋不了任何人的光輝。", source: "黃渤" },
+            { text: "歲月不饒人，我亦未曾饒過歲月。", source: "木心" },
+            { text: "所有的相遇，都是久別重逢。", source: "王家衛《一代宗師》" },
+            { text: "與其在意別人的背棄和不善，不如經營自己的尊嚴和美好。", source: "楊絳" },
+            { text: "我們聽過無數的道理，卻仍舊過不好這一生。", source: "韓寒" },
+            { text: "人生最大的遺憾，莫過於錯誤地堅持了不該堅持的，輕易地放棄了不該放棄的。", source: "柏楊" },
+            { text: "有些路很遠，走下去會很累。可是，不走，會後悔。", source: "幾米" },
+
+         // --- 社會與媒介反思 ---
+            { text: "在未來，每個人都能成名 15 分鐘。", source: "安迪·沃荷 (Andy Warhol)" },
+            { text: "媒介即訊息。(The medium is the message.)", source: "馬歇爾·麥克魯漢 (Marshall McLuhan)" },
+            { text: "生存還是毀滅，這是一個值得考慮的問題。", source: "莎士比亞《哈姆雷特》" },
+            { text: "成功不是終點，失敗也非致命，重要的是繼續前進的勇氣。", source: "溫斯頓·邱吉爾" }
+
+          // --- 先前保留的經典 ---
+            { text: "我們說故事給自己聽，為了活下去。", source: "瓊·蒂迪安《白色相簿》" }
+        ];
+
+        const forbiddenWords = ["上帝", "耶穌", "聖經", "基督", "阿門", "神啊"];
+
+        async function drawCard() {
+            const quoteText = document.getElementById('quote-display');
+            const sourceText = document.getElementById('source-display');
+            
+            quoteText.classList.add('loading');
+            quoteText.innerText = "宇宙正在為您挑選句子...";
+            sourceText.innerText = "";
+
+            // 輪替字體
+            const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+            quoteText.style.fontFamily = randomFont;
+            
+            const randomBgId = Math.floor(Math.random() * 1000);
+            document.body.style.backgroundImage = `url('https://picsum.photos/1920/1080?random=${randomBgId}&blur=2')`;
+
+            // 三引擎隨機選擇: 70% 本地專屬, 10% 今日詩詞, 20% 一言(Hitokoto)
+            const roll = Math.random();
+
+            if (roll < 0.7) {
+                const localQ = localQuotes[Math.floor(Math.random() * localQuotes.length)];
+                updateUI(localQ.text, localQ.source);
+            } else if (roll < 0.3) {
+                await fetchPoetryAPI();
+            } else {
+                await fetchHitokotoAPI();
+            }
         }
 
-        // 頁面載入時先跑一次
-        window.onload = drawQuote;
+        // 引擎 1：今日詩詞 API
+        async function fetchPoetryAPI() {
+            try {
+                const response = await fetch('https://v1.jinrishici.com/all.json');
+                const data = await response.json();
+                
+                let sourceString = "";
+                if (data.author) sourceString += data.author;
+                if (data.origin) sourceString += `《${data.origin}》`;
+                
+                const traditionalText = converter(data.content);
+                const traditionalSource = converter(sourceString || "佚名");
+                updateUI(traditionalText, traditionalSource);
+
+            } catch (error) {
+                console.error("詩詞 API 失敗:", error);
+                await fetchHitokotoAPI(); // 如果詩詞失敗，改呼叫一言
+            }
+        }
+
+        // 引擎 2：一言 Hitokoto API (文學、影視、哲學)
+        async function fetchHitokotoAPI() {
+            try {
+                const response = await fetch('https://v1.hitokoto.cn/?c=d&c=h&c=k');
+                const data = await response.json();
+                
+                const containsForbidden = forbiddenWords.some(word => data.hitokoto.includes(word));
+                if (containsForbidden) {
+                    return drawCard(); // 如果有宗教詞，全部重抽
+                }
+
+                let sourceString = data.from;
+                if (data.from_who && data.from_who !== data.from) {
+                     sourceString = `${data.from_who}《${data.from}》`;
+                } else {
+                     sourceString = `《${data.from}》`;
+                }
+
+                const traditionalText = converter(data.hitokoto);
+                const traditionalSource = converter(sourceString);
+
+                updateUI(traditionalText, traditionalSource);
+
+            } catch (error) {
+                console.error("一言 API 失敗:", error);
+                updateUI("網路訊號迷路了，但請記得：此時此刻，你就是最好的安排。", "系統提示");
+            }
+        }
+
+        // 更新介面並加上指定的引號 ❝ ❞
+        function updateUI(text, source) {
+            const quoteText = document.getElementById('quote-display');
+            const sourceText = document.getElementById('source-display');
+            quoteText.classList.remove('loading');
+            // 在這裡加上你指定的引號
+            quoteText.innerText = `❝ ${text} ❞`; 
+            sourceText.innerText = `—— ${source}`;
+        }
+
+        window.onload = drawCard;
     </script>
 </body>
 </html>

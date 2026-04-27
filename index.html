@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日金句抽卡機</title>
+    <style>
+        /* 基礎設定 */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* 預設背景，之後會被隨機圖庫取代 */
+            background: #2c3e50;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 1s ease-in-out;
+        }
+
+        /* 玻璃質感卡片 */
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            color: white;
+        }
+
+        .quote-text {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+        }
+
+        .quote-source {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        button {
+            margin-top: 30px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            color: #333;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div id="quote-display" class="quote-text">點擊下方按鈕，抽一句金句</div>
+        <div id="source-display" class="quote-source"></div>
+        <button onclick="drawQuote()">隨機抽一張卡</button>
+    </div>
+
+    <script>
+        // 這就是你的金句資料庫，你可以隨時在這裡增加！
+        const quotes = [
+            { text: "重要的東西，用眼睛是看不見的。", source: "《小王子》安東尼·聖修伯里" },
+            { text: "所謂的自由，就是被別人討厭。", source: "《被討厭的勇氣》岸見一郎" },
+            { text: "生命中所有燦爛終將用寂寞償還。", source: "《百年孤寂》馬奎斯" },
+            { text: "我們之所以存在，並非為了活在過去，而是為了讓過去活在我們之中。", source: "《卡拉馬助夫兄弟們》杜斯妥也夫斯基" },
+            { text: "世界上只有一種英雄主義，就是在認清生活真相之後，依然熱愛生活。", source: "羅曼·羅蘭" }
+        ];
+
+        function drawQuote() {
+            // 隨機選一句話
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            const quote = quotes[randomIndex];
+
+            // 更新文字
+            document.getElementById('quote-display').innerText = `「${quote.text}」`;
+            document.getElementById('source-display').innerText = `—— ${quote.source}`;
+
+            // 每次抽卡同時換一個隨機背景 (使用 Unsplash API)
+            const randomId = Math.floor(Math.random() * 1000);
+            document.body.style.backgroundImage = `url('https://picsum.photos/1920/1080?random=${randomId}')`;
+        }
+
+        // 頁面載入時先跑一次
+        window.onload = drawQuote;
+    </script>
+</body>
+</html>

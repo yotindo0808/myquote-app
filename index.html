@@ -22,14 +22,14 @@
         }
 
         .card {
-            background: rgba(20, 20, 30, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(20, 20, 30, 0.3); /* 降低變 30% 不透明 */
+            backdrop-filter: blur(5px);        /* 模糊度砍半 */
+            -webkit-backdrop-filter: blur(5px);
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 50px 40px;
-            width: 85%;
-            max-width: 600px;
+            width: 70%;
+            max-width: 800px;
             text-align: center;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
             color: #f1f1f1;
@@ -40,7 +40,7 @@
         }
 
         .quote-text {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             line-height: 1.6;
             margin-bottom: 25px;
             text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
@@ -49,7 +49,7 @@
         }
 
         .quote-source {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             opacity: 0.8;
             font-style: italic;
             letter-spacing: 1px;
@@ -79,7 +79,25 @@
         .loading {
             opacity: 0.4;
         }
-    </style>
+/* 📱 手機版專屬設定（當螢幕寬度小於 600px 時會自動觸發） */
+        @media (max-width: 600px) {
+            .card {
+                width: 92%;           /* 讓卡片更貼近手機邊緣，爭取更多顯示空間 */
+                padding: 40px 20px;   /* 減少左右的留白（從 40px 縮小到 20px），文字才不會被擠壓 */
+            }
+            .quote-text {
+                font-size: 1.4rem;    /* 將金句字體稍微縮小，避免在手機上換行太多次 */
+                margin-bottom: 20px;
+            }
+            .quote-source {
+                font-size: 1rem;      /* 出處字體也跟著微調 */
+            }
+            button {
+                padding: 10px 25px;   /* 按鈕稍微變精緻一點 */
+                font-size: 0.95rem;
+            }
+        }    
+</style>
 </head>
 <body>
 
@@ -227,13 +245,9 @@
             { text: "有些路很遠，走下去會很累。可是，不走，會後悔。", source: "幾米" },
 
             // --- 社會與媒介反思 ---
-            { text: "在未來，每個人都能成名 15 分鐘。", source: "安迪·沃荷 (Andy Warhol)" },
-            { text: "媒介即訊息。(The medium is the message.)", source: "馬歇爾·麥克魯漢 (Marshall McLuhan)" },
             { text: "生存還是毀滅，這是一個值得考慮的問題。", source: "莎士比亞《哈姆雷特》" },
             { text: "成功不是終點，失敗也非致命，重要的是繼續前進的勇氣。", source: "溫斯頓·邱吉爾" },
-
-            // --- 先前保留的經典 ---
-            { text: "我們說故事給自己聽，為了活下去。", source: "瓊·蒂迪安《白色相簿》" }
+            { text: "我們說故事給自己聽，為了活下去。", source: "瓊·蒂迪安《白色相簿》" },
         ];
 
         function drawCard() {

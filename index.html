@@ -21,33 +21,35 @@
             font-family: 'Varela Round', 'Microsoft JhengHei', sans-serif; 
         }
 
-      .card {
-            /* 1️⃣ 變成白色半透明基底 (25% 不透明度) */
-            background: rgba(255, 255, 255, 0.25); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+.card {
+            /* ✨ 換成極淡的白霜基底 (只有 15% 的白色) */
+            background: rgba(255, 255, 255, 0.15); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 16px;
-            /* 邊緣加上白色的高光，玻璃邊緣感會非常逼真 */
-            border: 1px solid rgba(255, 255, 255, 0.5); 
+            border: 1px solid rgba(255, 255, 255, 0.25); /* 邊框反光稍微提亮一點點 */
             padding: 50px 40px;
             width: 85%;
             max-width: 600px;
             text-align: center;
-            /* 陰影變得稍微柔和一點，才不會覺得玻璃很髒 */
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            color:#2c3e50;
+            /* 陰影也稍微調淡一點，配合輕盈的卡片 */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            
+            /* 維持白色文字 */
+            color: #f1f1f1; 
+            
             display: flex;
             flex-direction: column;
             align-items: center;
             transition: 0.5s;
         }
 
-       .quote-text {
+        .quote-text {
             font-size: 1.8rem;
             line-height: 1.6;
             margin-bottom: 25px;
-            /* 3️⃣ ⚠️拿掉原本很重的黑色文字陰影，畫面才會乾淨透亮 */
-            text-shadow: none; 
+            /* 🛡️ 死守這層陰影，這是文字清晰的保命符 */
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8); 
             min-height: 80px;
             transition: font-family 0.5s ease; 
         }

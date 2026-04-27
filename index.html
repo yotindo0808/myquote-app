@@ -29,8 +29,9 @@
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.25); /* 邊框反光稍微提亮一點點 */
             padding: 50px 40px;
-            width: 85%;
-            max-width: 600px;
+            width: 75%;          /* 原本是 85%，調小讓左右空間變大 */
+            max-width: 450px;
+            margin: 40px;        /* 🌟 關鍵魔法：強制卡片周圍「絕對要有 40px 的隱形防護罩」，不准貼到螢幕邊緣！ */
             text-align: center;
             /* 陰影也稍微調淡一點，配合輕盈的卡片 */
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
@@ -91,8 +92,9 @@
 /* 📱 手機版專屬設定（當螢幕寬度小於 600px 時會自動觸發） */
         @media (max-width: 600px) {
             .card {
-                width: 92%;           /* 讓卡片更貼近手機邊緣，爭取更多顯示空間 */
-                padding: 40px 20px;   /* 減少左右的留白（從 40px 縮小到 20px），文字才不會被擠壓 */
+                width: 85%;           /* 原本是逼近邊緣的 92%，退回 85% */
+                margin: 25px;         /* 🌟 手機螢幕小，防護罩設 25px 就足夠產生留白美感了 */
+                padding: 40px 20px;
             }
             .quote-text {
                 font-size: 1.4rem;    /* 將金句字體稍微縮小，避免在手機上換行太多次 */

@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>專屬金句抽卡機</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Varela+Round&display=swap" rel="stylesheet">
     
     <style>
+        /* 🌟 載入台灣粉圓體，解決缺字問題 */
+        @font-face {
+            font-family: 'OpenHuninn';
+            src: url('https://cdn.jsdelivr.net/gh/justfont/open-huninn-font@master/font/jf-openhuninn-2.0/jf-openhuninn-2.0.ttf') format('truetype');
+            font-display: swap;
+        }
+
         body, html {
             height: 100%;
             margin: 0;
@@ -18,52 +24,75 @@
             background-size: cover;
             background-position: center;
             transition: background-image 1s ease-in-out;
-            font-family: 'Varela Round', 'Microsoft JhengHei', sans-serif; 
+            /* 全站預設圓體 */
+            font-family: 'OpenHuninn', 'Microsoft JhengHei', sans-serif; 
         }
 
-.card {
-            /* ✨ 換成極淡的白霜基底 (只有 15% 的白色) */
-            background: rgba(255, 255, 255, 0.15); 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+        .card {
+            /* 淺色毛玻璃基底 */
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.25); /* 邊框反光稍微提亮一點點 */
+            border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 50px 40px;
-            width: 75%;          /* 原本是 85%，調小讓左右空間變大 */
+            
+            /* 置中與間距調整 */
+            width: 75%;
             max-width: 450px;
-            margin: 40px;        /* 🌟 關鍵魔法：強制卡片周圍「絕對要有 40px 的隱形防護罩」，不准貼到螢幕邊緣！ */
+            margin: 40px; 
+            
             text-align: center;
-            /* 陰影也稍微調淡一點，配合輕盈的卡片 */
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-            
-            /* 維持白色文字 */
-            color: #f1f1f1; 
-            
             display: flex;
             flex-direction: column;
             align-items: center;
             transition: 0.5s;
         }
 
-        .quote-text {
-            font-size: 1.8rem;
-            line-height: 1.6;
+.quote-text {
+            font-size: 1.4rem;
+            line-height: 1.0;
             margin-bottom: 25px;
-            /* 🛡️ 死守這層陰影，這是文字清晰的保命符 */
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.8); 
             min-height: 80px;
+
+            /* 1️⃣ 最乾淨的純白字體 */
+            color: #ffffff; 
+            
+            /* 👑 2️⃣ 絕對不吃字的「八方包圍外框 + 立體積木」疊加法 */
+            text-shadow: 
+                /* 第一層：上下左右的黑色 1px 外框 (絕對不會往內吃掉白字) */
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000,
+                 0px -1px 0 #000,
+                 0px  1px 0 #000,
+                -1px  0px 0 #000,
+                 1px  0px 0 #000,
+                /* 第二層：往右下角延伸的立體厚度 */
+                 2px 2px 0 #000,
+                 3px 3px 0 #000,
+                 4px 4px 0 #000;
+
             transition: font-family 0.5s ease; 
         }
 
-       .quote-source {
-            font-size: 1.1rem;
-            opacity: 0.8;
+        .quote-source {
+            font-size: 0.9rem;
+            opacity: 0.7;
             font-style: italic;
             letter-spacing: 1px;
-            font-family: 'Microsoft JhengHei', sans-serif;
+            
+            color: #ffffff;
+            /* 出處文字較小，用簡單的四方包圍 + 淺立體即可 */
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000,
+                 2px 2px 0 #000;
         }
-
-        /* 4️⃣ 按鈕改成深色，與文字顏色呼應，畫龍點睛 */
 
         button {
             margin-top: 40px;
@@ -76,39 +105,33 @@
             cursor: pointer;
             transition: all 0.3s ease;
             letter-spacing: 2px;
-            font-family: 'Microsoft JhengHei', sans-serif;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* 按鈕也加一點點影子 */
+            font-family: 'OpenHuninn', sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         button:hover {
-            background: #1a252f; /* 滑鼠移過去變更深 */
+            background: #1a252f;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
 
         .loading {
             opacity: 0.4;
         }
-/* 📱 手機版專屬設定（當螢幕寬度小於 600px 時會自動觸發） */
+
+        /* 📱 手機版調整 */
         @media (max-width: 600px) {
             .card {
-                width: 85%;           /* 原本是逼近邊緣的 92%，退回 85% */
-                margin: 25px;         /* 🌟 手機螢幕小，防護罩設 25px 就足夠產生留白美感了 */
+                width: 85%;
+                margin: 25px;
                 padding: 40px 20px;
             }
             .quote-text {
-                font-size: 1.4rem;    /* 將金句字體稍微縮小，避免在手機上換行太多次 */
+                font-size: 1.5rem;
                 margin-bottom: 20px;
             }
-            .quote-source {
-                font-size: 1rem;      /* 出處字體也跟著微調 */
-            }
-            button {
-                padding: 10px 25px;   /* 按鈕稍微變精緻一點 */
-                font-size: 0.95rem;
-            }
-        }    
-</style>
+        }
+    </style>
 </head>
 <body>
 
@@ -119,12 +142,9 @@
     </div>
 
     <script>
-        const fonts = [
-            "'Varela Round', 'Microsoft JhengHei', sans-serif",
-            "'Noto Sans TC', 'Microsoft JhengHei', sans-serif" 
-        ];
+        const fonts = ["'OpenHuninn', sans-serif"];
 
-        // 這裡是你完整、乾淨、100%由你掌控的資料庫！
+        // 🌟 你的完整百大金句庫，一字不漏！
         const localQuotes = [
             // --- 韓國戲劇 ---
             { text: "我是一隻混入白鯨群裡的獨角鯨。雖然大家都不一樣，但我還是很喜歡這片海洋。", source: "《非常律師禹英禑》" },
@@ -256,37 +276,30 @@
             { text: "有些路很遠，走下去會很累。可是，不走，會後悔。", source: "幾米" },
 
             // --- 社會與媒介反思 ---
+            { text: "在未來，每個人都能成名 15 分鐘。", source: "安迪·沃荷 (Andy Warhol)" },
             { text: "生存還是毀滅，這是一個值得考慮的問題。", source: "莎士比亞《哈姆雷特》" },
             { text: "成功不是終點，失敗也非致命，重要的是繼續前進的勇氣。", source: "溫斯頓·邱吉爾" },
-            { text: "我們說故事給自己聽，為了活下去。", source: "瓊·蒂迪安《白色相簿》" },
+            { text: "我們說故事給自己聽，為了活下去。", source: "瓊·蒂迪安《白色相簿》" }
         ];
 
         function drawCard() {
             const quoteText = document.getElementById('quote-display');
             const sourceText = document.getElementById('source-display');
             
-            // 先顯示讀取狀態 (儀式感)
             quoteText.classList.add('loading');
             
-            // 換字體
-            const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
-            quoteText.style.fontFamily = randomFont;
-            
-            // 換背景 (只保留這個無害的圖片抓取)
+            // 換背景
             const randomBgId = Math.floor(Math.random() * 1000);
             document.body.style.backgroundImage = `url('https://picsum.photos/1920/1080?random=${randomBgId}&blur=2')`;
 
-            // 設定一個極短的延遲，讓使用者感覺有在「抽卡」
             setTimeout(() => {
                 const localQ = localQuotes[Math.floor(Math.random() * localQuotes.length)];
-                
                 quoteText.classList.remove('loading');
                 quoteText.innerText = `❝ ${localQ.text} ❞`; 
                 sourceText.innerText = `—— ${localQ.source}`;
-            }, 300); // 0.3秒後亮牌
+            }, 300);
         }
 
-        // 確保網頁載入後立刻抽第一張
         window.onload = drawCard;
     </script>
 </body>
